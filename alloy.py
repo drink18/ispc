@@ -308,7 +308,7 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
             if current_OS != "Windows":
                 try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 < " + patch, from_validation)
             else:
-                try_do_LLVM("patch LLVM with patch " + patch + " ", "C:\\gnuwin32\\bin\\patch.exe -p0 < " + patch, from_validation)
+                try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 < " + patch, from_validation)
     os.chdir("../")
     # configuring llvm, build first part of selfbuild
     os.makedirs(LLVM_BUILD)
@@ -333,7 +333,7 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
                     (("  -DCMAKE_C_COMPILER=" + gcc_toolchain_path+"/bin/gcc") if gcc_toolchain_path != "" else "") +
                     (("  -DCMAKE_CXX_COMPILER=" + gcc_toolchain_path+"/bin/g++") if gcc_toolchain_path != "" else "") +
                     (("  -DDEFAULT_SYSROOT=" + mac_system_root) if mac_system_root != "" else "") +
-                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86" +
+                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AARCH64" +
                     " ../" + LLVM_SRC,
                     from_validation)
             selfbuild_compiler = ("  -DCMAKE_C_COMPILER=" +llvm_home+ "/" + LLVM_BIN_selfbuild + "/bin/clang " +
@@ -342,7 +342,7 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
             try_do_LLVM("configure release version for selfbuild ",
                         "../" + LLVM_SRC + "/configure --prefix=" + llvm_home + "/" +
                         LLVM_BIN_selfbuild + " --enable-optimized" +
-                        " --enable-targets=x86,x86_64,nvptx" +
+                        " --enable-targets=x86,x86_64,nvptx,arm, aarch64" +
                         ((" --with-gcc-toolchain=" + gcc_toolchain_path) if gcc_toolchain_path != "" else "") +
                         ((" --with-default-sysroot=" + mac_system_root) if mac_system_root != "" else ""),
                         from_validation)
@@ -372,14 +372,14 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
                         (("  -DCMAKE_C_COMPILER=" + gcc_toolchain_path+"/bin/gcc") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                         (("  -DCMAKE_CXX_COMPILER=" + gcc_toolchain_path+"/bin/g++") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                         (("  -DDEFAULT_SYSROOT=" + mac_system_root) if mac_system_root != "" else "") +
-                        "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86" +
+                        "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AARCH64" +
                         " ../" + LLVM_SRC,
                         from_validation)
             else:
                 try_do_LLVM("configure release version ",
                         selfbuild_compiler + "../" + LLVM_SRC + "/configure --prefix=" + llvm_home + "/" +
                         LLVM_BIN + " --enable-optimized" +
-                        " --enable-targets=x86,x86_64,nvptx" +
+                        " --enable-targets=x86,x86_64,nvptx,arm,aarch64" +
                         ((" --with-gcc-toolchain=" + gcc_toolchain_path) if gcc_toolchain_path != "" else "") +
                         ((" --with-default-sysroot=" + mac_system_root) if mac_system_root != "" else ""),
                         from_validation)
@@ -407,14 +407,14 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
                     (("  -DCMAKE_C_COMPILER=" + gcc_toolchain_path+"/bin/gcc") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                     (("  -DCMAKE_CXX_COMPILER=" + gcc_toolchain_path+"/bin/g++") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                     (("  -DDEFAULT_SYSROOT=" + mac_system_root) if mac_system_root != "" else "") +
-                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86" +
+                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AARCH64" +
                     " ../" + LLVM_SRC,
                     from_validation)
         else:
             try_do_LLVM("configure debug version ",
                         selfbuild_compiler + "../" + LLVM_SRC + "/configure --prefix=" + llvm_home + "/" + LLVM_BIN +
                         " --enable-debug-runtime --enable-debug-symbols --enable-keep-symbols" +
-                        " --enable-targets=x86,x86_64,nvptx" +
+                        " --enable-targets=x86,x86_64,nvptx,arm,aarch64" +
                         ((" --with-gcc-toolchain=" + gcc_toolchain_path) if gcc_toolchain_path != "" else "") +
                         ((" --with-default-sysroot=" + mac_system_root) if mac_system_root != "" else ""),
                         from_validation)
@@ -1012,7 +1012,8 @@ def Main():
             if not (" " + iterator + " " in test_only_r):
                 error("unknown option for only: " + iterator, 1)
     if current_OS == "Windows":
-        if options.debug == True or options.selfbuild == True or options.tarball != "":
+        # if options.debug == True or options.selfbuild == True or options.tarball != "":
+        if options.debug == True or options.tarball != "":
             error("Debug, selfbuild and tarball options are unsupported on windows", 1)
     global f_date
     f_date = "logs"
