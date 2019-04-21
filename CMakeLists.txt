@@ -44,7 +44,7 @@ set(PROJECT_NAME ispc)
 set(ISPC_BUILD TRUE)
 project(${PROJECT_NAME})
 
-option(ARM_ENABLED "Enable ARM support" OFF)
+option(ARM_ENABLED "Enable ARM support" ON)
 option(NVPTX_ENABLED "Enable NVPTX support" OFF)
 option(ISPC_INCLUDE_EXAMPLES "Generate build targets for the ISPC examples" ON)
 option(ISPC_INCLUDE_TESTS "Generate build targets for the ISPC tests." ON)

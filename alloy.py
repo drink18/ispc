@@ -231,13 +231,13 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
     LLVM_SRC="llvm-" + folder
     LLVM_BUILD="build-" + folder
     LLVM_BIN="bin-" + folder
-    if os.path.exists(LLVM_BIN + os.sep + "bin") and not force:
-        error("you have folder " + LLVM_BIN + ".\nIf you want to rebuild use --force", 1)
+    # if os.path.exists(LLVM_BIN + os.sep + "bin") and not force:
+        # error("you have folder " + LLVM_BIN + ".\nIf you want to rebuild use --force", 1)
     LLVM_BUILD_selfbuild = LLVM_BUILD + "_temp"
     LLVM_BIN_selfbuild = LLVM_BIN + "_temp"
-    common.remove_if_exists(LLVM_SRC)
-    common.remove_if_exists(LLVM_BUILD)
-    common.remove_if_exists(LLVM_BIN)
+    # common.remove_if_exists(LLVM_SRC)
+    # common.remove_if_exists(LLVM_BUILD)
+    # common.remove_if_exists(LLVM_BIN)
 
     # Starting with MacOS 10.9 Maverics, we depend on Xcode being installed, as it contains C and C++ library headers.
     # sysroot trick below helps finding C headers. For C++ we just check out libc++ sources.
@@ -261,15 +261,16 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
             error("Can't find XCode (xcrun tool) - it's required on MacOS 10.9 and newer", 1)
 
     if selfbuild:
-        common.remove_if_exists(LLVM_BUILD_selfbuild)
-        common.remove_if_exists(LLVM_BIN_selfbuild)
+        print "LLVM_BUILD_selfbuild= " + LLVM_BUILD_selfbuild
+        # common.remove_if_exists(LLVM_BUILD_selfbuild)
+        # common.remove_if_exists(LLVM_BIN_selfbuild)
     print_debug("Using folders: " + LLVM_SRC + " " + LLVM_BUILD + " " + LLVM_BIN + " in " + 
         llvm_home + "\n", from_validation, alloy_build)
     # load llvm
     if tarball == "":
-        checkout_LLVM("llvm", options.use_git, version_LLVM, revision, LLVM_SRC, from_validation)
+        # checkout_LLVM("llvm", options.use_git, version_LLVM, revision, LLVM_SRC, from_validation)
         os.chdir(LLVM_SRC + "/tools")
-        checkout_LLVM("clang", options.use_git, version_LLVM, revision, "clang", from_validation)
+        # checkout_LLVM("clang", options.use_git, version_LLVM, revision, "clang", from_validation)
         os.chdir("..")
         if current_OS == "MacOS" and int(current_OS_version.split(".")[0]) >= 13:
             # Starting with MacOS 10.9 Maverics, the system doesn't contain headers for standard C++ library and
@@ -281,13 +282,13 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
             # to the linker explicitly (either through command line or environment variables). So we are not doing it
             # currently to make the build process easier.
             os.chdir("projects")
-            checkout_LLVM("libcxx", options.use_git, version_LLVM, revision, "libcxx", from_validation)
+            # checkout_LLVM("libcxx", options.use_git, version_LLVM, revision, "libcxx", from_validation)
             os.chdir("..")
         if extra == True:
             os.chdir("tools/clang/tools")
-            checkout_LLVM("clang-tools-extra", options.use_git, version_LLVM, revision, "extra", from_validation)
+            # checkout_LLVM("clang-tools-extra", options.use_git, version_LLVM, revision, "extra", from_validation)
             os.chdir("../../../projects")
-            checkout_LLVM("compiler-rt", options.use_git, version_LLVM, revision, "compiler-rt", from_validation)
+            # checkout_LLVM("compiler-rt", options.use_git, version_LLVM, revision, "compiler-rt", from_validation)
             os.chdir("..")
     else:
         tar = tarball.split(" ")
@@ -308,18 +309,19 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
             if current_OS != "Windows":
                 try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 < " + patch, from_validation)
             else:
-                try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 < " + patch, from_validation)
+                pass
+                # try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 < " + patch, from_validation)
     os.chdir("../")
     # configuring llvm, build first part of selfbuild
-    os.makedirs(LLVM_BUILD)
-    os.makedirs(LLVM_BIN)
+    # os.makedirs(LLVM_BUILD)
+    # os.makedirs(LLVM_BIN)
     selfbuild_compiler = ""
     LLVM_configure_capable = ["3_2", "3_3", "3_4", "3_5", "3_6", "3_7"]
     if selfbuild:
         print_debug("Making selfbuild and use folders " + LLVM_BUILD_selfbuild + " and " +
             LLVM_BIN_selfbuild + "\n", from_validation, alloy_build)
-        os.makedirs(LLVM_BUILD_selfbuild)
-        os.makedirs(LLVM_BIN_selfbuild)
+        # os.makedirs(LLVM_BUILD_selfbuild)
+        # os.makedirs(LLVM_BIN_selfbuild)
         os.chdir(LLVM_BUILD_selfbuild)
         if  version_LLVM not in LLVM_configure_capable:
             try_do_LLVM("configure release version for selfbuild ",
@@ -333,7 +335,7 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
                     (("  -DCMAKE_C_COMPILER=" + gcc_toolchain_path+"/bin/gcc") if gcc_toolchain_path != "" else "") +
                     (("  -DCMAKE_CXX_COMPILER=" + gcc_toolchain_path+"/bin/g++") if gcc_toolchain_path != "" else "") +
                     (("  -DDEFAULT_SYSROOT=" + mac_system_root) if mac_system_root != "" else "") +
-                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AARCH64" +
+                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AArch64" +
                     " ../" + LLVM_SRC,
                     from_validation)
             selfbuild_compiler = ("  -DCMAKE_C_COMPILER=" +llvm_home+ "/" + LLVM_BIN_selfbuild + "/bin/clang " +
@@ -342,17 +344,22 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
             try_do_LLVM("configure release version for selfbuild ",
                         "../" + LLVM_SRC + "/configure --prefix=" + llvm_home + "/" +
                         LLVM_BIN_selfbuild + " --enable-optimized" +
-                        " --enable-targets=x86,x86_64,nvptx,arm, aarch64" +
+                        " --enable-targets=x86,x86_64,nvptx,arm, AArch64" +
                         ((" --with-gcc-toolchain=" + gcc_toolchain_path) if gcc_toolchain_path != "" else "") +
                         ((" --with-default-sysroot=" + mac_system_root) if mac_system_root != "" else ""),
                         from_validation)
             selfbuild_compiler = ("CC=" +llvm_home+ "/" + LLVM_BIN_selfbuild + "/bin/clang " +
                                   "CXX="+llvm_home+ "/" + LLVM_BIN_selfbuild + "/bin/clang++ ")
-        try_do_LLVM("build release version for selfbuild ",
-                    make, from_validation)
-        try_do_LLVM("install release version for selfbuild ",
-                    "make install",
-                    from_validation)
+
+            if current_OS != "Windows":
+                try_do_LLVM("build release version for selfbuild ",
+                            make, from_validation)
+                try_do_LLVM("install release version for selfbuild ",
+                            "make install",
+                            from_validation)
+            else:
+                try_do_LLVM("build & install release version for selfbuild",
+                        "cmake --build . --config release --target install", from_validation)
         os.chdir("../")
 
         print_debug("Now we have compiler for selfbuild: " + selfbuild_compiler + "\n", from_validation, alloy_build)
@@ -372,14 +379,14 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
                         (("  -DCMAKE_C_COMPILER=" + gcc_toolchain_path+"/bin/gcc") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                         (("  -DCMAKE_CXX_COMPILER=" + gcc_toolchain_path+"/bin/g++") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                         (("  -DDEFAULT_SYSROOT=" + mac_system_root) if mac_system_root != "" else "") +
-                        "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AARCH64" +
+                        "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AArch64" +
                         " ../" + LLVM_SRC,
                         from_validation)
             else:
                 try_do_LLVM("configure release version ",
                         selfbuild_compiler + "../" + LLVM_SRC + "/configure --prefix=" + llvm_home + "/" +
                         LLVM_BIN + " --enable-optimized" +
-                        " --enable-targets=x86,x86_64,nvptx,arm,aarch64" +
+                        " --enable-targets=x86,x86_64,nvptx,arm,AArch64" +
                         ((" --with-gcc-toolchain=" + gcc_toolchain_path) if gcc_toolchain_path != "" else "") +
                         ((" --with-default-sysroot=" + mac_system_root) if mac_system_root != "" else ""),
                         from_validation)
@@ -390,7 +397,7 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
                     get_llvm_enable_dump_switch(version_LLVM) +
                     '  -DLLVM_ENABLE_ASSERTIONS=ON' +
                     '  -DLLVM_INSTALL_UTILS=ON' +
-                    '  -DLLVM_TARGETS_TO_BUILD=X86' +
+                    '  -DLLVM_TARGETS_TO_BUILD=X86\;ARM\;AArch64' +
                     '  -DLLVM_LIT_TOOLS_DIR="C:\\gnuwin32\\bin" ..\\' + LLVM_SRC,
                     from_validation)
     else:
@@ -407,14 +414,14 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
                     (("  -DCMAKE_C_COMPILER=" + gcc_toolchain_path+"/bin/gcc") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                     (("  -DCMAKE_CXX_COMPILER=" + gcc_toolchain_path+"/bin/g++") if gcc_toolchain_path != "" and selfbuild_compiler == "" else "") +
                     (("  -DDEFAULT_SYSROOT=" + mac_system_root) if mac_system_root != "" else "") +
-                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AARCH64" +
+                    "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AArch64" +
                     " ../" + LLVM_SRC,
                     from_validation)
         else:
             try_do_LLVM("configure debug version ",
                         selfbuild_compiler + "../" + LLVM_SRC + "/configure --prefix=" + llvm_home + "/" + LLVM_BIN +
                         " --enable-debug-runtime --enable-debug-symbols --enable-keep-symbols" +
-                        " --enable-targets=x86,x86_64,nvptx,arm,aarch64" +
+                        " --enable-targets=x86,x86_64,nvptx,arm,AArch64" +
                         ((" --with-gcc-toolchain=" + gcc_toolchain_path) if gcc_toolchain_path != "" else "") +
                         ((" --with-default-sysroot=" + mac_system_root) if mac_system_root != "" else ""),
                         from_validation)
@@ -423,7 +430,8 @@ def build_LLVM(version_LLVM, revision, folder, tarball, debug, selfbuild, extra,
         try_do_LLVM("build LLVM ", make, from_validation)
         try_do_LLVM("install LLVM ", "make install", from_validation)
     else:
-        try_do_LLVM("build LLVM and than install LLVM ", "msbuild INSTALL.vcxproj /V:m /p:Platform=Win32 /p:Configuration=Release /t:rebuild", from_validation)
+        # try_do_LLVM("build LLVM and than install LLVM ", "msbuild INSTALL.vcxproj /V:m /p:Platform=Win32 /p:Configuration=Release /t:rebuild", from_validation)
+        try_do_LLVM("build llvm and then install ", "cmake --build . --config Release --target install", from_validation)
     os.chdir(current_path) 
 
 
@@ -529,6 +537,7 @@ def check_targets():
     return [result, result_generic, result_sde, result_knc]
 
 def build_ispc(version_LLVM, make):
+    print "build_ispc"
     current_path = os.getcwd()
     ispc_home = os.environ["ISPC_HOME"]
     os.chdir(ispc_home)
@@ -579,6 +588,8 @@ def build_ispc(version_LLVM, make):
         copyfile(os.path.join(ispc_home, ISPC_BIN, "bin", "ispc"), os.path.join(ispc_home, + "ispc"))
         os.environ["PATH"] = p_temp
     else:
+        print "ispc_home=" + ispc_home
+        print "geneator=" + generator
         try_do_LLVM("configure ispc build", 'cmake -G ' + '\"' + generator + '\"' + ' -DCMAKE_INSTALL_PREFIX="..\\'+ ISPC_BIN + '" ' +
                     '  -DCMAKE_BUILD_TYPE=Release ' +
                         ispc_home, True)
@@ -1040,10 +1051,11 @@ def Main():
         generator = options.generator
     else:
         if current_OS == "Windows":
-            generator = "Visual Studio 14"
+            generator = "Visual Studio 15 2017"
         else:
             generator = "Unix Makefiles"
     try:
+        print "got here to build llvm in main"
         start_time = time.time()
         if options.build_llvm:
             build_LLVM(options.version, options.revision, options.folder, options.tarball,
@@ -1060,7 +1072,8 @@ def Main():
         date_name = "alloy_results_" + datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
         if os.path.exists(date_name):
             error("It's forbidden to run alloy two times in a second, logs are in ./logs", 1)
-        os.rename(f_date, date_name)
+        print "f_date={}, date_name={}".format(f_date, date_name)
+        # os.rename(f_date, date_name)
         print_debug("Logs are in " + date_name + "\n", False, "")
         exit(0)
 
