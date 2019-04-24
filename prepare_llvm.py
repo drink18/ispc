@@ -51,10 +51,10 @@ def try_do_LLVM(text, command, from_validation):
         text = text + "\n"
     print_debug("Trying to " + text, from_validation, alloy_build)
     postfix = ""
-    if current_OS == "Windows":
-        postfix = " 1>> " + alloy_build + " 2>&1"
-    else:
-        postfix = " >> " + alloy_build + " 2>> " + alloy_build
+    # if current_OS == "Windows":
+        # postfix = " 1>> " + alloy_build + " 2>&1"
+    # else:
+        # postfix = " >> " + alloy_build + " 2>> " + alloy_build
     if os.system(command + postfix) != 0:
         print_debug("ERROR.\n", from_validation, alloy_build)
     print_debug("DONE.\n", from_validation, alloy_build)
@@ -181,7 +181,7 @@ def Main(llvm_base, llvm_version):
     if current_OS == 'Windows':
         generator = 'Visual Studio 15 2017'
     else:
-        generator = 'Makefiles'
+        generator = 'Unix Makefiles'
 
     print 'Checking out LLVM......'
     if os.path.exists(LLVM_SRC):
@@ -190,9 +190,10 @@ def Main(llvm_base, llvm_version):
         make_sure_dir_exists(LLVM_SRC)
         checkout_LLVM("llvm", use_git, version_LLVM, revision, LLVM_SRC, from_validation)
 
-    tool_path = '{}/tools/clang'.format(LLVM_SRC)
-    if os.path.exists(tool_path):
-        print 'llvm source foler {} exsit! assuming already cloned!'.format(tool_path)
+    tool_path = '{}/tools/'.format(LLVM_SRC)
+    clang_tool_path = '{}/tools/clang'.format(LLVM_SRC)
+    if os.path.exists(clang_tool_path):
+        print 'llvm source foler {} exsit! assuming already cloned!'.format(clang_tool_path)
     else:
         make_sure_dir_exists(tool_path)
         os.chdir(tool_path)
@@ -208,12 +209,12 @@ def Main(llvm_base, llvm_version):
         # Note, that we can also build a libc++ library, but it must be on system default location or should be passed
         # to the linker explicitly (either through command line or environment variables). So we are not doing it
         # currently to make the build process easier.
-        os.chdir("projects")
+        os.chdir("{}/projects".format(LLVM_SRC))
         checkout_LLVM("libcxx", use_git, version_LLVM, revision, "libcxx", from_validation)
         os.chdir("..")
     if extra == True:
         print os.getcwd()
-        clang_tool_path = '{}/clang/toosl'.format(LLVM_SRC)
+        clang_tool_path = '{}/clang/tools'.format(LLVM_SRC)
         if os.path.exists(clang_tool_path):
             print 'llvm source foler {} exsit! assuming already cloned!'.format(clang_tool_path)
         else:
@@ -229,12 +230,12 @@ def Main(llvm_base, llvm_version):
     print 'Patching llvm for ISPC......'
     os.chdir(LLVM_SRC)
     patches = glob.glob("{}/llvm_patches".format(pwd) + os.sep + "*.*")
-    # for patch in patches:
-        # if version_LLVM in os.path.basename(patch):
-            # if current_OS != "Windows":
-                # try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 < " + patch, from_validation)
-            # else:
-                # try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 -i " + patch, from_validation)
+    for patch in patches:
+        if version_LLVM in os.path.basename(patch):
+            if current_OS != "Windows":
+                try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 < " + patch, from_validation)
+            else:
+                try_do_LLVM("patch LLVM with patch " + patch + " ", "patch -p0 -i " + patch, from_validation)
     os.chdir(pwd)
 
     # configuring llvm, build first part of selfbuild
@@ -257,14 +258,14 @@ def Main(llvm_base, llvm_version):
                 "  -DCMAKE_INSTALL_PREFIX=" + LLVM_BIN +
                 "  -DCMAKE_BUILD_TYPE=Release" +
                 get_llvm_enable_dump_switch(version_LLVM) + "  -DLLVM_ENABLE_ASSERTIONS=ON" + "  -DLLVM_INSTALL_UTILS=ON" +
-                "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AArch64" +  " " + LLVM_SRC,
+                "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;AArch64" +  " " + LLVM_SRC,
                 from_validation)
         selfbuild_compiler = ("  -DCMAKE_C_COMPILER=" + LLVM_SRC + "/" + LLVM_BIN + "/bin/clang " +
                                 "  -DCMAKE_CXX_COMPILER="+ LLVM_SRC + "/" + LLVM_BIN + "/bin/clang++ ")
 
         if current_OS != "Windows":
             try_do_LLVM("build release version for selfbuild ",
-                        make, from_validation)
+                        'make', from_validation)
             try_do_LLVM("install release version for selfbuild ",
                         "make install",
                         from_validation)
