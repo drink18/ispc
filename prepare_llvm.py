@@ -174,7 +174,7 @@ def Main(llvm_base, llvm_version):
 
     pwd = os.getcwd();
     use_git = True
-    extra = True
+    extra = False
     revision = ''
     from_validation = False
 
@@ -210,7 +210,10 @@ def Main(llvm_base, llvm_version):
         # to the linker explicitly (either through command line or environment variables). So we are not doing it
         # currently to make the build process easier.
         os.chdir("{}/projects".format(LLVM_SRC))
-        checkout_LLVM("libcxx", use_git, version_LLVM, revision, "libcxx", from_validation)
+        if(os.path.exists('libcxx')):
+                print 'libcxx already exists. Assuming already cloned'
+        else:
+            checkout_LLVM("libcxx", use_git, version_LLVM, revision, "libcxx", from_validation)
         os.chdir("..")
     if extra == True:
         print os.getcwd()
@@ -258,14 +261,14 @@ def Main(llvm_base, llvm_version):
                 "  -DCMAKE_INSTALL_PREFIX=" + LLVM_BIN +
                 "  -DCMAKE_BUILD_TYPE=Release" +
                 get_llvm_enable_dump_switch(version_LLVM) + "  -DLLVM_ENABLE_ASSERTIONS=ON" + "  -DLLVM_INSTALL_UTILS=ON" +
-                "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;AArch64" +  " " + LLVM_SRC,
+                "  -DLLVM_TARGETS_TO_BUILD=NVPTX\;X86\;ARM\;AArch64" +  " " + LLVM_SRC,
                 from_validation)
         selfbuild_compiler = ("  -DCMAKE_C_COMPILER=" + LLVM_SRC + "/" + LLVM_BIN + "/bin/clang " +
                                 "  -DCMAKE_CXX_COMPILER="+ LLVM_SRC + "/" + LLVM_BIN + "/bin/clang++ ")
 
         if current_OS != "Windows":
             try_do_LLVM("build release version for selfbuild ",
-                        'make', from_validation)
+                        'make -j12', from_validation)
             try_do_LLVM("install release version for selfbuild ",
                         "make install",
                         from_validation)
