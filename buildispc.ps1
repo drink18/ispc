@@ -4,8 +4,6 @@ param(
 
 $env:ISPC_HOME=Get-Location
 $env:LLVM_HOME="./llvm-build"
-$env:Z3_LIBRARIES="../z3-4.8.4.d6df51951f4c-x64-win/bin/"
-$env:Z3_INCLUDE_DIR="../z3-4.8.4.d6df51951f4c-x64-win/include/"
 
 py ./alloy.py -b --version="$LLVM_VERSION" --selfbuild --git
 
